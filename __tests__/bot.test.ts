@@ -1,6 +1,13 @@
 const { bot } = require("../bot");
 
-let outgoingRequests = [];
+type ResultType = Awaited<ReturnType<ApiCallFn<typeof bot.api.raw>>>;
+type PayloadType = Awaited<Parameters<ApiCallFn<typeof bot.api.raw>>[0]>;
+
+// Outgoing requests from the bot (for logging/debugging)
+let outgoingRequests: {
+  method: string;
+  payload: PayloadType | {};
+}[] = [];
 
 function generateMessage(message) {
   return {
@@ -28,7 +35,7 @@ function generateMessage(message) {
 beforeAll(async () => {
   bot.api.config.use((prev, method, payload, signal) => {
     outgoingRequests.push({ method, payload, signal });
-    return { ok: true, result: true };
+    return { ok: true, result: true as ResultType };
   });
 
   bot.botInfo = {
