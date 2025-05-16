@@ -4,13 +4,14 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "jest"
+    "test": "vitest"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "grammy": "^1.7.0"
+    "grammy": "^1.7.0",
+    "typescript": "^5.8.3"
   },
   "devDependencies": {
     "vitest": "^3.1.3"

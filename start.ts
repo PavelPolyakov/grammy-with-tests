@@ -1,4 +1,4 @@
-const { bot } = require("./bot");
+import { bot } from "./bot";
 async function main() {
   await bot.start();
 }
