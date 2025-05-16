@@ -1,15 +1,23 @@
-const { bot } = require("../bot");
+import { Update } from "@grammyjs/types";
+import { ApiCallFn } from "grammy";
+import { beforeAll, beforeEach, expect, test } from "vitest";
 
-type ResultType = Awaited<ReturnType<ApiCallFn<typeof bot.api.raw>>>;
-type PayloadType = Awaited<Parameters<ApiCallFn<typeof bot.api.raw>>[0]>;
+import { bot } from "../bot";
+
+type Function = ApiCallFn<typeof bot.api.raw>;
+type ResultType = Awaited<ReturnType<Function>>;
+type Params = Parameters<Function>;
+type PayloadType = Params[1];
+
+const isTextPayload = (p: PayloadType): p is { text: string } => "text" in p;
 
 // Outgoing requests from the bot (for logging/debugging)
 let outgoingRequests: {
   method: string;
-  payload: PayloadType | {};
+  payload: PayloadType;
 }[] = [];
 
-function generateMessage(message) {
+function generateMessage(message: string): Update {
   return {
     update_id: 10000,
     message: {
@@ -19,6 +27,7 @@ function generateMessage(message) {
         id: 1111111,
         first_name: "Test",
         username: "Test",
+        type: "private",
       },
       message_id: 1365,
       from: {
@@ -26,6 +35,7 @@ function generateMessage(message) {
         id: 1111111,
         first_name: "Test",
         username: "Test",
+        is_bot: false,
       },
       text: message,
     },
@@ -33,8 +43,11 @@ function generateMessage(message) {
 }
 
 beforeAll(async () => {
-  bot.api.config.use((prev, method, payload, signal) => {
-    outgoingRequests.push({ method, payload, signal });
+  bot.api.config.use(async (prev, method, payload) => {
+    outgoingRequests.push({
+      method,
+      payload,
+    });
     return { ok: true, result: true as ResultType };
   });
 
@@ -63,7 +76,20 @@ test("reset; three time plus, two time minus", async () => {
   await bot.handleUpdate(generateMessage("-"));
 
   expect(outgoingRequests.length).toBe(6);
-  expect(outgoingRequests.pop().payload.text).toBe(1);
+  const payload = outgoingRequests?.pop()?.payload;
+  expect(payload).not.toBeNull();
+
+  if (!payload) {
+    throw new Error("Payload is null");
+  }
+
+  expect(isTextPayload(payload)).toBe(true);
+
+  if (!isTextPayload(payload)) {
+    throw new Error("Payload is not a text payload");
+  }
+
+  expect(payload.text).toBe("1");
 }, 5000);
 
 test("reset; two times plus, three time minus", async () => {
@@ -75,5 +101,18 @@ test("reset; two times plus, three time minus", async () => {
   await bot.handleUpdate(generateMessage("-"));
 
   expect(outgoingRequests.length).toBe(6);
-  expect(outgoingRequests.pop().payload.text).toBe(-1);
+  const payload = outgoingRequests?.pop()?.payload;
+  expect(payload).not.toBeNull();
+
+  if (!payload) {
+    throw new Error("Payload is null");
+  }
+
+  expect(isTextPayload(payload)).toBe(true);
+
+  if (!isTextPayload(payload)) {
+    throw new Error("Payload is not a text payload");
+  }
+
+  expect(payload.text).toBe("-1");
 }, 5000);

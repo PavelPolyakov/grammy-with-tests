@@ -1,4 +1,4 @@
-const { Bot } = require("grammy");
+import { Bot } from "grammy";
 
 const BOT_TOKEN = process.env.BOT_TOKEN || "test";
 
@@ -7,6 +7,9 @@ const bot = new Bot(BOT_TOKEN);
 let counter = 0;
 
 bot.on(":text", async (ctx) => {
+  if (!ctx.message) {
+    return;
+  }
   switch (ctx.message.text) {
     case "reset":
       counter = 0;
@@ -20,7 +23,7 @@ bot.on(":text", async (ctx) => {
     default:
       break;
   }
-  ctx.reply(counter);
+  ctx.reply(counter.toString());
 });
 
-module.exports = { bot };
+export { bot };
